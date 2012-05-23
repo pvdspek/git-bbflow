@@ -1,0 +1,18 @@
+#!/bin/sh
+usage() {
+	echo "usage: bump-version <version-id>"
+}
+
+if [ $# -ne 1 ]; then
+	usage
+	exit 1
+fi
+
+if ! sed 's/^GITBBFLOW_VERSION=.*$/GITBBFLOW_VERSION='$1'/g' git-bbflow-version > .git-bbflow-version.new; then
+	echo "Could not replace GITBBFLOW_VERSION variable." >&2
+	exit 2
+fi
+
+mv .git-bbflow-version.new git-bbflow-version
+git add git-bbflow-version
+git commit -m "Bumped version number to $1" git-bbflow-version

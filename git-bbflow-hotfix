@@ -157,6 +157,8 @@ cmd_create() {
 
     git_fetch_origin
 
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot create hotfix."
+
     # sanity checks
     require_clean_working_tree
     require_no_existing_local_hotfix_branches
@@ -191,6 +193,8 @@ cmd_switch() {
 
     git_fetch_origin
 
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot switch to hotfix."
+
     BRANCH="$HOTFIX_PREFIX$VERSION"
 
     # sanity checks
@@ -224,6 +228,8 @@ cmd_abort() {
     parse_args "$@"
 
     git_fetch_origin
+
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot abort hotfix."
 
     # sanity checks
     require_clean_working_tree
@@ -266,6 +272,8 @@ cmd_complete() {
     parse_args "$@"
 
     git_fetch_origin
+
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot complete hotfix."
 
     # sanity checks
     require_clean_working_tree
@@ -417,6 +425,8 @@ cmd_close() {
     parse_args "$@"
 
     git_fetch_origin
+
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot close hotfix."
 
     # sanity checks
     require_clean_working_tree

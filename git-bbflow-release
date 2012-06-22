@@ -158,6 +158,8 @@ cmd_create() {
 
     git_fetch_origin
 
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot create release."
+
     # sanity checks
     require_clean_working_tree
     require_no_existing_local_release_branches
@@ -192,6 +194,8 @@ cmd_switch() {
 
     git_fetch_origin
 
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot switch to release."
+
     BRANCH="$RELEASE_PREFIX$VERSION"
 
     # sanity checks
@@ -225,6 +229,8 @@ cmd_abort() {
     parse_args "$@"
 
     git_fetch_origin
+
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot abort release."
 
     # sanity checks
     require_clean_working_tree
@@ -274,6 +280,8 @@ cmd_feature() {
     DEFINE_boolean abort false "abort feature release" a
     parse_args "$@"
     parse_feature "$@"
+
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot release feature."
 
     local status
     local release_feature_branch
@@ -411,6 +419,8 @@ cmd_complete() {
 
     git_fetch_origin
 
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot complete release."
+
     # sanity checks
     require_clean_working_tree
     require_current_release_branch
@@ -506,6 +516,8 @@ cmd_close() {
     parse_args "$@"
 
     git_fetch_origin
+
+    [ "$ROLE" == "admin" ] || die "Admin role required. Cannot close release."
 
     # sanity checks
     require_clean_working_tree

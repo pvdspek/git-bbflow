@@ -252,12 +252,17 @@ gitbbflow_has_prefixes_configured() {
     git config --get gitbbflow.prefix.releasetag >/dev/null 2>&1
 }
 
+gitbbflow_has_role_configured() {
+    git config --get gitbbflow.role >/dev/null 2>&1
+}
+
 gitbbflow_is_initialized() {
     gitbbflow_has_master_configured            && \
     gitbbflow_has_develop_configured           && \
     [ "$(git config --get gitbbflow.branch.master)" !=    \
       "$(git config --get gitbbflow.branch.develop)" ] && \
-    gitbbflow_has_prefixes_configured
+    gitbbflow_has_prefixes_configured          && \
+    gitbbflow_has_role_configured
 }
 
 # loading settings that can be overridden using git config
@@ -272,6 +277,7 @@ gitbbflow_load_settings() {
     export HOTFIX_PREFIX=$(git config --get gitbbflow.prefix.hotfix)
     export FEATURETAG_PREFIX=$(git config --get gitbbflow.prefix.featuretag)
     export RELEASETAG_PREFIX=$(git config --get gitbbflow.prefix.releasetag)
+    export ROLE=$(git config --get gitbbflow.role)
 }
 
 #

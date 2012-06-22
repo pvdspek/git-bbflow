@@ -58,6 +58,8 @@ cmd_default() {
     local hotfix_branch=$(echo "$BRANCH" | grep "^$HOTFIX_PREFIX")
 
     [ ! -z "$feature_branch" -o ! -z "$release_branch" -o ! -z "$hotfix_branch" ] || die "Cannot push unsupported $BRANCH branch."
+    [ ! -z "$release_branch" -a "$ROLE" != "admin" ] && die "Admin role required. Cannot push bracnh '$BRANCH' to '$ORIGIN'."
+    [ ! -z "$hotfix_branch" -a "$ROLE" != "admin" ] && die "Admin role required. Cannot push bracnh '$BRANCH' to '$ORIGIN'."
 
     git_compare_branches "$BRANCH" "$ORIGIN/$BRANCH"
     local status=$?

@@ -1,0 +1,85 @@
+#
+# git-bbflow -- A collection of Git extensions to provide high-level
+# repository operations for Blue Billywig's branching model.
+#
+#
+# Copyright (c) 2012 Blue Billywig B.V. All rights reserved.
+#
+# Based on the work of Vincent Driessen, for which the copyright notice follows.
+#
+#
+# Copyright 2010 Vincent Driessen. All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+#    1. Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+# 
+#    2. Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+# 
+# THIS SOFTWARE IS PROVIDED BY VINCENT DRIESSEN ``AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+# EVENT SHALL VINCENT DRIESSEN OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# 
+# The views and conclusions contained in the software and documentation are
+# those of the authors and should not be interpreted as representing official
+# policies, either expressed or implied, of Vincent Driessen.
+#
+
+require_git_repo
+require_gitbbflow_initialized
+gitbbflow_load_settings
+
+usage() {
+	echo "usage: git bbflow update"
+}
+
+cmd_default() {
+    git_fetch_origin
+    require_clean_working_tree
+
+    BRANCH=$(git_current_branch)
+
+    [ "$BRANCH" != "$DEVELOP_BRANCH" ] || die "Updating the $DEVELOP_BRANCH branch is done automatically on 'git bbflow feature complete'."
+    [ "$BRANCH" != "$MASTER_BRANCH" ] || die "Updating the $MASTER_BRANCH branch is done automatically on 'git bbflow release complete'."
+
+    local feature_branch=$(echo "$BRANCH" | grep "^$FEATURE_PREFIX")
+    local release_branch=$(echo "$BRANCH" | grep "^$RELEASE_PREFIX")
+    local hotfix_branch=$(echo "$BRANCH" | grep "^$HOTFIX_PREFIX")
+
+    [ ! -z "$feature_branch" -o ! -z "$release_branch" -o ! -z "$hotfix_branch" ] || die "Cannot update unsupported $BRANCH branch."
+
+    git_compare_branches "$BRANCH" "$ORIGIN/$BRANCH"
+    local status=$?
+    [ $status -ne 0 ] || die "Local already up-to-date. Nothing to update."
+    [ $status -ne 2 ] || die "Local already up-to-date, but local changes not yet pushed to remote. Use 'git bbflow push' to push changes."
+    [ $status -ne 4 ] || die "Local and remote branches are not related. Unrecoverable error."
+
+    git merge "$ORIGIN/$BRANCH"
+    status=$?
+
+    if [ $status -eq 1 ]; then
+        echo
+        echo "Merge conflict while updating branch '$BRANCH' from remote '$ORIGIN'."
+        echo "Fix conflicts using merge tools and commit using 'git commit',"
+        echo "or abort the merge resolution by running 'git merge --abort'."
+    else
+        echo
+        echo "Updated branch '$BRANCH' from remote '$ORIGIN'."
+    fi
+}
+
+cmd_help() {
+	usage
+	exit 0
+}

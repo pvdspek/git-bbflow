@@ -1,4 +1,8 @@
 #
+# git-bbflow -- A collection of Git extensions to provide high-level
+# repository operations for Blue Billywig's branching model.
+#
+#
 # Copyright (c) 2012 Blue Billywig B.V. All rights reserved.
 #
 # Based on the work of Vincent Driessen, for which the copyright notice follows.
@@ -32,34 +36,43 @@
 # policies, either expressed or implied, of Vincent Driessen.
 #
 
-prefix=/usr/local
+require_git_repo
+require_gitbbflow_initialized
+gitbbflow_load_settings
 
-# files that need mode 755
-EXEC_FILES=git-bbflow
+usage() {
+	echo "usage: git bbflow push"
+}
 
-# files that need mode 644
-SCRIPT_FILES =git-bbflow-init
-SCRIPT_FILES+=git-bbflow-push
-SCRIPT_FILES+=git-bbflow-update
-SCRIPT_FILES+=git-bbflow-cleanup
-SCRIPT_FILES+=git-bbflow-feature
-SCRIPT_FILES+=git-bbflow-hotfix
-SCRIPT_FILES+=git-bbflow-release
-SCRIPT_FILES+=git-bbflow-version
-SCRIPT_FILES+=gitbbflow-common
-SCRIPT_FILES+=gitbbflow-shFlags
+cmd_default() {
+    git_fetch_origin
+    require_clean_working_tree
 
-all:
-	@echo "usage: make install"
-	@echo "       make uninstall"
+    BRANCH=$(git_current_branch)
 
-install:
-	@test -f gitbbflow-shFlags || (echo "Run 'git submodule init && git submodule update' first." ; exit 1 )
-	install -d -m 0755 $(prefix)/bin
-	install -m 0755 $(EXEC_FILES) $(prefix)/bin
-	install -m 0644 $(SCRIPT_FILES) $(prefix)/bin
+    [ "$BRANCH" != "$DEVELOP_BRANCH" ] || die "Pushing the $DEVELOP_BRANCH branch is done automatically on 'git bbflow feature complete'."
+    [ "$BRANCH" != "$MASTER_BRANCH" ] || die "Pushing the $MASTER_BRANCH branch is done automatically on 'git bbflow release complete'."
 
-uninstall:
-	test -d $(prefix)/bin && \
-	cd $(prefix)/bin && \
-	rm -f $(EXEC_FILES) $(SCRIPT_FILES)
+    local feature_branch=$(echo "$BRANCH" | grep "^$FEATURE_PREFIX")
+    local release_branch=$(echo "$BRANCH" | grep "^$RELEASE_PREFIX")
+    local hotfix_branch=$(echo "$BRANCH" | grep "^$HOTFIX_PREFIX")
+
+    [ ! -z "$feature_branch" -o ! -z "$release_branch" -o ! -z "$hotfix_branch" ] || die "Cannot push unsupported $BRANCH branch."
+
+    git_compare_branches "$BRANCH" "$ORIGIN/$BRANCH"
+    local status=$?
+    [ $status -ne 0 ] || die "Remote already up-to-date. Nothing to push."
+    [ $status -ne 1 ] || die "Remote already up-to-date, but local branch needs to be updated from remote. Use 'git bbflow update'."
+    [ $status -ne 3 ] || die "Local branch needs to be updated from remote first. Use 'git bbflow update'."
+    [ $status -ne 4 ] || die "Local and remote branches are not related. Unrecoverable error."
+
+    git push "$ORIGIN" "$BRANCH"
+
+    echo
+    echo "Pushed changes to remote '$ORIGIN'."
+}
+
+cmd_help() {
+	usage
+	exit 0
+}

@@ -160,7 +160,7 @@ cmd_default() {
 			done
 		fi
 
-		printf "Branch name for \"next release\" development: [$default_suggestion] "
+		printf "Branch name for development: [$default_suggestion] "
 		if noflag defaults; then
 			read answer
 		else
@@ -227,7 +227,8 @@ cmd_default() {
 	   ! git config --get gitbbflow.prefix.feature >/dev/null 2>&1 ||
 	   ! git config --get gitbbflow.prefix.release >/dev/null 2>&1 ||
 	   ! git config --get gitbbflow.prefix.hotfix >/dev/null 2>&1 ||
-	   ! git config --get gitbbflow.prefix.versiontag >/dev/null 2>&1; then
+	   ! git config --get gitbbflow.prefix.featuretag >/dev/null 2>&1 ||
+	   ! git config --get gitbbflow.prefix.releasetag >/dev/null 2>&1; then
 		echo
 		echo "How to name your supporting branch prefixes?"
 	fi
@@ -236,7 +237,7 @@ cmd_default() {
 
 	# Feature branches
 	if ! git config --get gitbbflow.prefix.feature >/dev/null 2>&1 || flag force; then
-		default_suggestion=$(git config --get gitbbflow.prefix.feature || echo feature/)
+		default_suggestion=$(git config --get gitbbflow.prefix.feature || echo "feature/")
 		printf "Feature branches? [$default_suggestion] "
 		if noflag defaults; then
 			read answer
@@ -249,7 +250,7 @@ cmd_default() {
 
 	# Release branches
 	if ! git config --get gitbbflow.prefix.release >/dev/null 2>&1 || flag force; then
-		default_suggestion=$(git config --get gitbbflow.prefix.release || echo release/)
+		default_suggestion=$(git config --get gitbbflow.prefix.release || echo "release/")
 		printf "Release branches? [$default_suggestion] "
 		if noflag defaults; then
 			read answer
@@ -263,7 +264,7 @@ cmd_default() {
 
 	# Hotfix branches
 	if ! git config --get gitbbflow.prefix.hotfix >/dev/null 2>&1 || flag force; then
-		default_suggestion=$(git config --get gitbbflow.prefix.hotfix || echo hotfix/)
+		default_suggestion=$(git config --get gitbbflow.prefix.hotfix || echo "hotfix/")
 		printf "Hotfix branches? [$default_suggestion] "
 		if noflag defaults; then
 			read answer
@@ -275,21 +276,32 @@ cmd_default() {
 	fi
 
 
-	# Version tag prefix
-	if ! git config --get gitbbflow.prefix.versiontag >/dev/null 2>&1 || flag force; then
-		default_suggestion=$(git config --get gitbbflow.prefix.versiontag || echo "")
-		printf "Version tag prefix? [$default_suggestion] "
+	# Feature tag prefix
+	if ! git config --get gitbbflow.prefix.featuretag >/dev/null 2>&1 || flag force; then
+		default_suggestion=$(git config --get gitbbflow.prefix.featuretag || echo "completed-feature/")
+		printf "Feature tag prefix? [$default_suggestion] "
 		if noflag defaults; then
 			read answer
 		else
 			printf "\n"
 		fi
 		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
-		git config gitbbflow.prefix.versiontag "$prefix"
+		git config gitbbflow.prefix.featuretag "$prefix"
 	fi
 
 
-	# TODO: what to do with origin?
+	# Release tag prefix
+	if ! git config --get gitbbflow.prefix.releasetag >/dev/null 2>&1 || flag force; then
+		default_suggestion=$(git config --get gitbbflow.prefix.releasetag || echo "completed-release/")
+		printf "Release tag prefix? [$default_suggestion] "
+		if noflag defaults; then
+			read answer
+		else
+			printf "\n"
+		fi
+		[ "$answer" = "-" ] && prefix= || prefix=${answer:-$default_suggestion}
+		git config gitbbflow.prefix.releasetag "$prefix"
+	fi
 }
 
 cmd_help() {

@@ -368,7 +368,7 @@ cmd_feature() {
         feature_base_commit="$(git rev-list -n 1 $feature_branch)"
     fi
 
-    for commit in $(git cherry "$BRANCH" "$feature_branch" "$feature_base_commit" | grep '^+' | sed -ne 's/^+ //p'); do
+    for commit in $(git cherry "$BRANCH" "$feature_branch" "$feature_base_commit" | sed -ne 's/^[+-] //p'); do
         git cherry-pick "$commit"
         status=$?
 

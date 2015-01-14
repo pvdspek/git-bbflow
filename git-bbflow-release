@@ -349,6 +349,9 @@ cmd_feature() {
 
         # Check if not already merged
         release_feature_branch="$RELEASE_PREFIX$VERSION-features/$feature_branch_short"
+        if [ ${#release_feature_branch} -gt 120 ]; then
+            release_feature_branch=${release_feature_branch:0:120}
+        fi
         release_feature_branches="$(echo "$(git_local_branches)" | grep "^$release_feature_branch")"
         [ -z "$release_feature_branches" ] || die "Feature $FEATURE already included in this release."
 
@@ -365,7 +368,7 @@ cmd_feature() {
         feature_base_commit="$(git rev-list -n 1 $feature_branch)"
     fi
 
-    for commit in $(git cherry "$BRANCH" "$feature_branch" "$feature_base_commit" | grep '^+' | sed -ne 's/^+ //p'); do
+    for commit in $(git cherry "$BRANCH" "$feature_branch" "$feature_base_commit" | sed -ne 's/^[+-] //p'); do
         git cherry-pick "$commit"
         status=$?
 
